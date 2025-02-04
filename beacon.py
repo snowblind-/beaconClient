@@ -5,12 +5,17 @@ import random
 import logging
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
+import socket
 
 # Suppress SSL warnings
 warnings.simplefilter('ignore', InsecureRequestWarning)
 
 # Set up logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(message)s')
+
+# Specify the source IP address for the beacon (you can modify this as needed)
+src_ip = '192.168.80.222'  # Example source IP (change to your desired IP)
+
 
 # C2 server URL (you can modify this to the actual server you're targeting)
 C2_SERVER_URL = [
@@ -26,8 +31,24 @@ PAYLOAD = "{beacon:fire away!}"
 # Time interval between beacons (in seconds)
 BEACON_INTERVAL = 30  # 30 seconds as an example
 
+# Create a session that binds to the specified source address
+def session_for_src_addr(addr: str) -> requests.Session:
+    """
+    Create a `Session` which will bind to the specified local address
+    """
+    session = requests.Session()
+    for prefix in ('http://', 'https://'):
+        session.get_adapter(prefix).init_poolmanager(
+            connections=requests.adapters.DEFAULT_POOLSIZE,
+            maxsize=requests.adapters.DEFAULT_POOLSIZE,
+            # This binds to the specified IP address
+            source_address=(addr, 0),
+        )
+    return session
+
+
 # Simulate the beacon
-def send_beacon():
+def send_beacon(src_ip: str):
     try:
         # Randomizing the headers slightly to avoid detection
         headers = {
@@ -40,9 +61,14 @@ def send_beacon():
             "payload": PAYLOAD
         }
 
+        # Randomly select one of the C2 server URLs
         selected_URL = random.choice(C2_SERVER_URL)
+
+        # Create the session that binds to the given source IP address
+        session = session_for_src_addr(src_ip)
+
         # Send POST request to the C2 server, skipping SSL verification
-        response = requests.post(selected_URL, json=data, headers=headers, verify=False)
+        response = session.post(selected_URL, json=data, headers=headers, verify=False)
 
         # Log the response from the server
         if response.status_code == 200:
@@ -53,12 +79,15 @@ def send_beacon():
     except requests.exceptions.RequestException as e:
         logging.error("Error sending beacon: %s", e)
 
+
 # Main function to repeatedly send beacons
 def main():
     logging.info("Beacon script started.")
+
     while True:
-        send_beacon()
+        send_beacon(src_ip)
         time.sleep(BEACON_INTERVAL)
+
 
 if __name__ == "__main__":
     main()
